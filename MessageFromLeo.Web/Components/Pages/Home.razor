@@ -1,0 +1,66 @@
+﻿@page "/"
+@using MessageFromLeo.Mongo.Repositories
+@rendermode InteractiveServer
+@inject IMessageRepository MessageRepository
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello!</h1>
+
+<p>Public Message from Bervianto Leo Pratama to you. If I published the message here, I wouldn't regret that.</p>
+
+<p>
+  Check your message here!
+</p>
+
+<EditForm Model="@To" OnValidSubmit="@Submit" FormName="FindMessage">
+  <DataAnnotationsValidator />
+  <ValidationSummary />
+  <div>
+    <label class="form-label">
+      <InputText class="form-control" @bind-Value="To" />
+    </label>
+  </div>
+  <div>
+    <button class="btn btn-primary" type="submit">Check!</button>
+  </div>
+</EditForm>
+
+@if (messages?.Count > 0)
+{
+  <table class="table">
+  <thead>
+    <tr>
+      <th>Message</th>
+      <th>Last Modified</th>
+    </tr>
+  </thead>
+  <tbody>
+    @foreach (var message in messages)
+      {
+        <tr>
+          <td>@message.Content</td>
+          <td>@message.UpdatedAt</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+else
+{
+  <div>No Message</div>
+}
+
+@code {
+  private string? To { get; set; } = string.Empty;
+
+  private List<MessageFromLeo.Models.Message>? messages = new List<Models.Message>();
+
+  private void Submit()
+  {
+    if (!string.IsNullOrWhiteSpace(To))
+    {
+      messages = MessageRepository.ReadByTo(To);
+    }
+  }
+}

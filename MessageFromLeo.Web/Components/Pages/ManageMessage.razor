@@ -1,0 +1,76 @@
+@page "/manage-message/{Id?}"
+@rendermode InteractiveServer
+@using MessageFromLeo.Mongo.Repositories
+@inject IMessageRepository MessageRepository
+@inject NavigationManager Navigation
+
+<PageTitle>Manage Messages @Id</PageTitle>
+<h1>Manage Messages @Id</h1>
+
+<EditForm Model="@message" OnValidSubmit="@Submit" FormName="ManageMessage">
+  <DataAnnotationsValidator />
+  <ValidationSummary />
+  @if (!string.IsNullOrWhiteSpace(Id))
+  {
+    <div>
+      <label>
+        Id: @Id
+      </label>
+    </div>
+  }
+  <div>
+    <label class="form-label">
+      To:
+      <InputText class="form-control" @bind-Value="message!.To" />
+    </label>
+  </div>
+  <div>
+    <label class="form-label">
+      Content:
+      <InputTextArea class="form-control" @bind-Value="message!.Content" />
+    </label>
+  </div>
+  <div>
+    <button class="btn btn-primary" type="submit">Submit</button>
+  </div>
+</EditForm>
+
+@code {
+  [Parameter]
+  public string? Id { get; set; }
+
+  private List<MessageFromLeo.Models.Message>? messages = new List<Models.Message>();
+
+  private MessageFromLeo.Models.Message? message { get; set; }
+
+  protected override void OnInitialized()
+  {
+    if (!string.IsNullOrWhiteSpace(Id))
+    {
+      message = MessageRepository.ReadById(Id);
+    }
+    else
+    {
+      message = new();
+    }
+  }
+
+  private void Submit()
+  {
+    var update = !string.IsNullOrWhiteSpace(Id);
+    if (message == null)
+    {
+      return;
+    }
+    if (update)
+    {
+      MessageRepository.Update(message);
+
+    }
+    else
+    {
+      MessageRepository.Create(message);
+    }
+    Navigation.NavigateTo("/message");
+  }
+}
