@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using MessageFromLeo.Mongo.Repositories
+@using MongoDB.Bson
 @rendermode InteractiveServer
 @inject IMessageRepository MessageRepository
 
@@ -10,57 +11,100 @@
 <p>Public Message from Bervianto Leo Pratama to you. If I published the message here, I wouldn't regret that.</p>
 
 <p>
-  Check your message here!
+    Check your message here!
 </p>
 
 <EditForm Model="@To" OnValidSubmit="@Submit" FormName="FindMessage">
-  <DataAnnotationsValidator />
-  <ValidationSummary />
-  <div>
-    <label class="form-label">
-      <InputText class="form-control" @bind-Value="To" />
-    </label>
-  </div>
-  <div>
-    <button class="btn btn-primary" type="submit">Check!</button>
-  </div>
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>
+        <label class="form-label">
+            <InputText class="form-control" @bind-Value="To" />
+        </label>
+    </div>
+    <div>
+        <label class="form-label">
+            Include Secret
+            <InputCheckbox @bind-Value="IncludeSecret" />
+        </label>
+    </div>
+    <div>
+        <button class="btn btn-primary" type="submit">Check!</button>
+    </div>
 </EditForm>
 
 @if (messages?.Count > 0)
 {
-  <table class="table">
-  <thead>
-    <tr>
-      <th>Message</th>
-      <th>Last Modified</th>
-    </tr>
-  </thead>
-  <tbody>
-    @foreach (var message in messages)
-      {
-        <tr>
-          <td>@message.Content</td>
-          <td>@message.UpdatedAt</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Last Modified</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var message in messages)
+            {
+                <tr>
+                    <td>@message.Content</td>
+                    <td>@message.UpdatedAt</td>
+                    <td>
+                        @if (!string.IsNullOrWhiteSpace(message.Password))
+                        {
+                            <InputText type="password" class="form-control" @bind-Value="TempPass" />
+                            <button class="btn btn-secondary" @onclick="() => Show(message.Id)">Show Encrypted</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 else
 {
-  <div>No Message</div>
+    <div>No Message</div>
 }
 
 @code {
-  private string? To { get; set; } = string.Empty;
+    private string? To { get; set; } = string.Empty;
+    private string? TempPass { get; set; } = string.Empty;
+    private bool IncludeSecret = false;
 
-  private List<MessageFromLeo.Models.Message>? messages = new List<Models.Message>();
+    private List<MessageFromLeo.Models.Message>? messages = new List<Models.Message>();
 
-  private void Submit()
-  {
-    if (!string.IsNullOrWhiteSpace(To))
+    private void Submit()
     {
-      messages = MessageRepository.ReadByTo(To);
+        if (!string.IsNullOrWhiteSpace(To))
+        {
+            messages = MessageRepository.ReadByTo(To, IncludeSecret);
+        }
     }
-  }
+
+    private void Show(ObjectId objectId)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(TempPass))
+            {
+                return;
+            }
+            var message = messages?.Where(x => x.Id == objectId).FirstOrDefault();
+            if (message == null)
+            {
+                return;
+            }
+            var decryptedMessage = MessageRepository.ReadByIdAndPass(objectId, TempPass);
+            if (string.IsNullOrEmpty(decryptedMessage))
+            {
+                return;
+            }
+            message.Content = decryptedMessage;
+        }
+        finally
+        {
+            TempPass = string.Empty;
+        }
+
+    }
 }

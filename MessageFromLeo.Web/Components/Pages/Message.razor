@@ -9,53 +9,55 @@
 
 @if (messages == null)
 {
-  <p><em>Loading...</em></p>
+    <p><em>Loading...</em></p>
 }
 else
 {
-  <a href="/manage-message" class="btn btn-primary">Add</a>
-  <table class="table">
-  <thead>
-    <tr>
-      <th>To</th>
-      <th>Message</th>
-      <th>Last Modified</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    @foreach (var message in messages)
-      {
-        <tr>
-          <td>@message.To</td>
-          <td>@message.Content</td>
-          <td>@message.UpdatedAt</td>
-          <td>
-            <button class="btn btn-secondary" @onclick="() => Edit(message.Id)">Edit</button>
-            <button class="btn btn-danger" @onclick="() => Delete(message.Id)">Delete</button>
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
+    <a href="/manage-message" class="btn btn-primary">Add</a>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>To</th>
+                <th>Message</th>
+                <th>Password</th>
+                <th>Last Modified</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var message in messages)
+            {
+                <tr>
+                    <td>@message.To</td>
+                    <td>@message.Content</td>
+                    <td>@message.Password</td>
+                    <td>@message.UpdatedAt</td>
+                    <td>
+                        <button class="btn btn-secondary" @onclick="() => Edit(message.Id)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => Delete(message.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 
 @code {
-  private List<MessageFromLeo.Models.Message>? messages;
+    private List<MessageFromLeo.Models.Message>? messages;
 
-  protected override void OnInitialized()
-  {
-    messages = MessageRepository.Read(null);
-  }
+    protected override void OnInitialized()
+    {
+        messages = MessageRepository.Read(null);
+    }
 
-  private void Edit(MongoDB.Bson.ObjectId id)
-  {
-    Navigation.NavigateTo($"/manage-message/{id.ToString()}");
-  }
+    private void Edit(MongoDB.Bson.ObjectId id)
+    {
+        Navigation.NavigateTo($"/manage-message/{id.ToString()}");
+    }
 
-  private void Delete(MongoDB.Bson.ObjectId id)
-  {
-    MessageRepository.Delete(id);
-    messages = MessageRepository.Read(null);
-  }
+    private void Delete(MongoDB.Bson.ObjectId id)
+    {
+        MessageRepository.Delete(id);
+        messages = MessageRepository.Read(null);
+    }
 }

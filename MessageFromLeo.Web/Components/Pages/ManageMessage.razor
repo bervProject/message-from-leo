@@ -8,69 +8,75 @@
 <h1>Manage Messages @Id</h1>
 
 <EditForm Model="@message" OnValidSubmit="@Submit" FormName="ManageMessage">
-  <DataAnnotationsValidator />
-  <ValidationSummary />
-  @if (!string.IsNullOrWhiteSpace(Id))
-  {
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    @if (!string.IsNullOrWhiteSpace(Id))
+    {
+        <div>
+            <label>
+                Id: @Id
+            </label>
+        </div>
+    }
     <div>
-      <label>
-        Id: @Id
-      </label>
+        <label class="form-label">
+            To:
+            <InputText class="form-control" @bind-Value="message!.To" />
+        </label>
     </div>
-  }
-  <div>
-    <label class="form-label">
-      To:
-      <InputText class="form-control" @bind-Value="message!.To" />
-    </label>
-  </div>
-  <div>
-    <label class="form-label">
-      Content:
-      <InputTextArea class="form-control" @bind-Value="message!.Content" />
-    </label>
-  </div>
-  <div>
-    <button class="btn btn-primary" type="submit">Submit</button>
-  </div>
+    <div>
+        <label class="form-label">
+            Content:
+            <InputTextArea class="form-control" @bind-Value="message!.Content" />
+        </label>
+    </div>
+    <div>
+        <label class="form-label">
+            Password:
+            <InputText type="password" class="form-control" @bind-Value="message!.Password" />
+        </label>
+    </div>
+    <div>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </div>
 </EditForm>
 
 @code {
-  [Parameter]
-  public string? Id { get; set; }
+    [Parameter]
+    public string? Id { get; set; }
 
-  private List<MessageFromLeo.Models.Message>? messages = new List<Models.Message>();
+    private List<MessageFromLeo.Models.Message>? messages = new List<Models.Message>();
 
-  private MessageFromLeo.Models.Message? message { get; set; }
+    private MessageFromLeo.Models.Message? message { get; set; }
 
-  protected override void OnInitialized()
-  {
-    if (!string.IsNullOrWhiteSpace(Id))
+    protected override void OnInitialized()
     {
-      message = MessageRepository.ReadById(Id);
+        if (!string.IsNullOrWhiteSpace(Id))
+        {
+            message = MessageRepository.ReadById(Id);
+        }
+        else
+        {
+            message = new();
+        }
     }
-    else
-    {
-      message = new();
-    }
-  }
 
-  private void Submit()
-  {
-    var update = !string.IsNullOrWhiteSpace(Id);
-    if (message == null)
+    private void Submit()
     {
-      return;
-    }
-    if (update)
-    {
-      MessageRepository.Update(message);
+        var update = !string.IsNullOrWhiteSpace(Id);
+        if (message == null)
+        {
+            return;
+        }
+        if (update)
+        {
+            MessageRepository.Update(message);
 
+        }
+        else
+        {
+            MessageRepository.Create(message);
+        }
+        Navigation.NavigateTo("/message");
     }
-    else
-    {
-      MessageRepository.Create(message);
-    }
-    Navigation.NavigateTo("/message");
-  }
 }
